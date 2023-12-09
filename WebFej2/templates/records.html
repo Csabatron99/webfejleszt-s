@@ -1,0 +1,130 @@
+{% extends 'layout.html' %}
+
+{% block title %}Records{% endblock %}
+
+{% block content %}
+  <h2>Records</h2>
+  <p>Search Term: {{ search_term }}</p>
+  {% if current_user.is_authenticated and current_user.user_type in ['admin', 'editor'] %}
+    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addRecordModal">
+      Add Record
+    </button>
+
+    <!-- Add Record Modal -->
+    <div class="modal fade" id="addRecordModal" tabindex="-1" role="dialog" aria-labelledby="addRecordModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addRecordModalLabel">Add Record</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form method="post" action="{{ url_for('add_record') }}" id="addRecordForm">
+              {{ add_record_form.csrf_token }}
+              <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+              </div>
+              <div class="form-group">
+                <label for="content">Content</label>
+                <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Add Record</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+  <input type="text" id="searchInput" placeholder="Search for records">
+  <button type="button" class="btn btn-primary" onclick="searchRecords()">Search</button>
+  <a href="{{ url_for('records') }}" class="btn btn-primary">Reload</a>
+  <table class="table table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Content</th>
+        {% if current_user.user_type in ['editor', 'admin'] %}
+          <th>Actions</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in records %}
+        <tr>
+          <td>{{ record.title }}</td>
+          <td>{{ record.content }}</td>
+          <td>
+            {% if current_user.user_type in ['editor', 'admin'] %}
+                <button type="button" class="btn btn-warning btn-block" data-toggle="modal" data-target="#editRecordModal{{ record.id }}">
+                    Edit
+                </button>
+              <!-- Delete Button -->
+              <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#deleteRecordModal{{ record.id }}">
+                Delete
+              </button>
+
+               <!-- Edit Record Modal -->
+                <div class="modal fade" id="editRecordModal{{ record.id }}" tabindex="-1" role="dialog" aria-labelledby="editRecordModalLabel{{ record.id }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editRecordModalLabel{{ record.id }}">Edit Record</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Edit Form -->
+                                <form method="post" action="{{ url_for('edit_record', record_id=record.id) }}">
+                                    {{ edit_record_form.csrf_token }}
+                                    <div class="form-group">
+                                        <label for="title">Title:</label>
+                                        <input type="text" class="form-control" id="title" name="title" value="{{ record.title }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="content">Content:</label>
+                                        <textarea class="form-control" id="content" name="content" rows="3" required>{{ record.content }}</textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-warning">Save Changes</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              <!-- Delete Record Modal -->
+                <div class="modal fade" id="deleteRecordModal{{ record.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteRecordModalLabel{{ record.id }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteRecordModalLabel{{ record.id }}">Delete Record</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to delete the record "{{ record.title }}"?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <form method="post" action="{{ url_for('delete_record', record_id=record.id) }}">
+                                    {{ edit_record_form.csrf_token }} {# Use the appropriate form instance #}
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-danger">Delete Record</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  
+
+  
+{% endblock %}

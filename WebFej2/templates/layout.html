@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Flask App{% endblock %}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div id="flashModal" class="modal fade" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Flash Message</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <ul class="flashes">
+                                {% for message in messages %}
+                                    <li>{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">WebFej</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                </li>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.user_type == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('user_database') }}">User Database</a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('records') }}">Records</a>
+                    </li>
+                {% endif %}
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    
+
+    <div class="container mt-5">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Set the initial session timeout (in seconds)
+        const sessionTimeout = {{ current_user.get_timeout() if current_user.is_authenticated else 0 }};
+    
+        // Function to update the session timeout
+        function updateSessionTimeout() {
+            // Reset the session timeout
+            let timeout = sessionTimeout;
+    
+            // Update the session expiration time on user activity
+            document.addEventListener('mousemove', function () {
+                timeout = sessionTimeout; // reset the timeout on mouse move
+            });
+    
+            // Interval to check inactivity and update session expiration
+            setInterval(function () {
+                timeout--;
+                if (timeout <= 0) {
+                    // Redirect to logout when session expires
+                    window.location.href = "{{ url_for('logout') }}";
+                }
+            }, 1000); // update every second
+        }
+    
+        // Call the function to initialize session timeout
+        if (sessionTimeout > 0) {
+            updateSessionTimeout();
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    $('#flashModal').modal('show');
+    
+                    // Automatically hide the modal after 5 seconds
+                    setTimeout(function () {
+                        $('#flashModal').modal('hide');
+                    }, 5000);
+                {% endif %}
+            {% endwith %}
+        });
+    </script>
+    <script>
+        function searchRecords() {
+          const searchInput = document.getElementById("searchInput");
+          const searchTerm = searchInput.value.toLowerCase();
+      
+          // Redirect to the same page with the search term as a query parameter
+          window.location.href = "{{ url_for('records') }}?search=" + encodeURIComponent(searchTerm);
+        }
+      </script>
+      <script>
+        function searchUsers() {
+          const searchInput = document.getElementById("searchInput");
+          const searchTerm = searchInput.value.toLowerCase();
+      
+          // Redirect to the same page with the search term as a query parameter
+          window.location.href = "{{ url_for('user_database') }}?search=" + encodeURIComponent(searchTerm);
+        }
+      </script>
+    
+</body>
+</html>

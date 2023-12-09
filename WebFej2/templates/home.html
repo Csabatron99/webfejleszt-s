@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="jumbotron mt-4">
+    <h1 class="display-4">Welcome, {{ current_user.username }}!</h1>
+    {% if current_user.user_type == 'normal' %}
+        <p class="lead">Hello {{ current_user.username }}, you can browse the records.</p>
+    {% elif current_user.user_type == 'editor' %}
+        <p class="lead">Hello {{ current_user.username }}, you can browse and edit the records.</p>
+    {% elif current_user.user_type == 'admin' %}
+        <p class="lead">Hello {{ current_user.username }}, you can browse, edit records, and manage users.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('logout') }}">
+        <button type="submit" class="btn btn-primary">Logout</button>
+    </form>
+</div>
+{% endblock %}

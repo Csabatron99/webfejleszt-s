@@ -1,0 +1,123 @@
+{% extends 'layout.html' %}
+
+{% block title %}User Database{% endblock %}
+
+{% block content %}
+  <h2>User Database</h2>
+  <p>Search Term: {{ search_term }}</p>
+  <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addUserModal">
+    Add User
+  </button>
+  <input type="text" id="searchInput" placeholder="Search for users">
+  <button type="button" class="btn btn-primary" onclick="searchUsers()">Search</button>
+  <a href="{{ url_for('user_database') }}" class="btn btn-primary">Reload</a>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Password (Hashed)</th>
+        <th>User Type</th>
+        <th>Actions</th>  <!-- Add a new column for action buttons -->
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.password[:10] }}...{{ user.password[-10:] }}</td>
+          <td>{{ user.user_type }}</td>
+          <td>
+            <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editUserModal{{ user.id }}">
+              Edit
+            </button>
+            <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteUserModal-{{ user.id }}">
+              Delete
+            </button>
+          </td>
+        </tr>
+        <div class="modal fade" id="editUserModal{{ user.id }}" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel{{ user.id }}" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel{{ user.id }}">Edit User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form method="POST" action="{{ url_for('edit_user', user_id=user.id) }}">
+                  {{ add_user_form.csrf_token }}
+                  <div class="form-group">
+                    <label for="edit_username">Username:</label>
+                    <input type="text" class="form-control" id="edit_username" name="edit_username" value="{{ user.username }}" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="edit_user_type">User Type:</label>
+                    <select class="form-control" id="edit_user_type" name="edit_user_type" required>
+                      <option value="normal" {% if user.user_type == 'normal' %}selected{% endif %}>Normal</option>
+                      <option value="editor" {% if user.user_type == 'editor' %}selected{% endif %}>Editor</option>
+                      <option value="admin" {% if user.user_type == 'admin' %}selected{% endif %}>Admin</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-warning">Save Changes</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal fade" id="deleteUserModal-{{ user.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title" id="deleteUserModalLabel">Confirm Deletion</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                  </div>
+                  <div class="modal-body">
+                      <p>Are you sure you want to delete the user '{{ user.username }}'?</p>
+                  </div>
+                  <div class="modal-footer">
+                      <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}">
+                          {{ add_user_form.csrf_token }}
+                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          <button type="submit" class="btn btn-danger">Delete User</button>
+                      </form>
+                  </div>
+              </div>
+          </div>
+      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+              <form method="POST" action="{{ url_for('add_user') }}">
+                  {{ add_user_form.csrf_token }}
+                <div class="form-group">
+                    {{ add_user_form.username.label }} {{ add_user_form.username(class="form-control", required=True) }}
+                </div>
+                <div class="form-group">
+                    {{ add_user_form.password.label }} {{ add_user_form.password(class="form-control", required=True) }}
+                </div>
+                <div class="form-group">
+                    {{ add_user_form.user_type.label }} {{ add_user_form.user_type(class="form-control", required=True) }}
+                </div>
+                <button type="submit" class="btn btn-primary">Add User</button>
+              </form>
+            </div>
+        </div>
+    </div>
+  </div>  
+</div>
+{% endblock %}
